@@ -1,0 +1,62 @@
+version: '3.7'
+
+services:
+  app:
+    container_name: app
+    image: node
+    user: node
+    privileged: true
+    volumes:
+      - ../:/app/:z
+      - $HOME/.ssh:/home/node/.ssh:z
+      - ./.bashrc:/home/node/.bashrc:z
+      - ./.bash-git-prompt:/home/node/.bash-git-prompt:z
+    command: >
+      sh -c "
+        cd /app/api
+        npm i
+        npm start &
+        cd /app/client
+        npm i
+        npm start
+      "
+    ports:
+      - 3000:3000
+    networks:
+      shared:
+      
+  auth_db:
+    image: postgres
+    container_name: auth_db
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    networks:
+      shared:
+
+  auth_web:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: auth_web
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: auth_db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "ssl=true"
+    ports:
+      - 4000:8080
+    depends_on:
+      - auth_db
+    networks:
+      shared:
+
+networks:
+  shared:
