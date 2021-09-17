@@ -26,8 +26,8 @@ namespace dotnet.Controllers
     [HttpGet]
     public String Get()
     {
-      // return JsonSerializer.Serialize(User);
-      return "here";
+      return JsonSerializer.Serialize(User.Identities);
+      // return "here";
     }
   }
 }
